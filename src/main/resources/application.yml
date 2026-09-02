@@ -1,0 +1,31 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: OA-System
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/oa_system?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.tianyu.oasystem.entity
+  configuration:
+    map-underscore-to-camel-case: true   # 下划线字段转驼峰属性
+
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true          # 页码越界自动纠正
+  support-methods-arguments: true
+
+jwt:
+  secret: tianyu-oa-system-jwt-secret-key-2026-internship-project
+  expire-minutes: 120       # Token 有效期 2 小时
+  renew-threshold-minutes: 30  # 剩余不足 30 分钟自动续期
+
+logging:
+  level:
+    com.tianyu.oasystem.mapper: debug

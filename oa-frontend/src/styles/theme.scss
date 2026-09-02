@@ -1,0 +1,144 @@
+/* ============================================================
+   OA 办公管理系统 设计系统 —— 深蓝 + 浅灰企业风
+   签名元素：数据中心网络拓扑（信号青 #38BDF8 仅用于拓扑与焦点态）
+   ============================================================ */
+
+:root {
+  /* 品牌色板 */
+  --oa-navy: #0e2238;          /* 藏青：侧栏 / 登录品牌面板 */
+  --oa-navy-soft: #16324f;     /* 侧栏悬浮层 */
+  --oa-primary: #1a56a8;       /* 深青主色 */
+  --oa-signal: #38bdf8;        /* 信号青：拓扑连线 / 焦点态 */
+  --oa-surface: #f2f5f9;       /* 浅灰页面底色 */
+  --oa-ink: #22303f;           /* 正文 */
+  --oa-ink-light: #5f6f81;     /* 次要文字 */
+  --oa-line: #dce3ec;          /* 描边 */
+
+  --oa-mono: Consolas, 'JetBrains Mono', 'Courier New', monospace;
+
+  /* Element Plus 主色覆盖 */
+  --el-color-primary: #1a56a8;
+  --el-color-primary-light-3: #4d7ebe;
+  --el-color-primary-light-5: #8caad6;
+  --el-color-primary-light-7: #c5d5ea;
+  --el-color-primary-light-8: #dee7f2;
+  --el-color-primary-light-9: #eef3f9;
+  --el-color-primary-dark-2: #154586;
+}
+
+html, body, #app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', system-ui, sans-serif;
+  color: var(--oa-ink);
+  background: var(--oa-surface);
+  font-size: 14px;
+}
+
+/* 台账感：编号与统计数字用等宽字体 */
+.oa-mono {
+  font-family: var(--oa-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* 内容区统一卡片 */
+.oa-page-card {
+  background: #fff;
+  border: 1px solid var(--oa-line);
+  border-radius: 6px;
+  padding: 20px;
+}
+
+.oa-page-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--oa-navy);
+  margin: 0 0 16px;
+
+  &::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 14px;
+    background: var(--oa-primary);
+    border-radius: 2px;
+    margin-right: 8px;
+    vertical-align: -1px;
+  }
+}
+
+/* 分页器固定右下 */
+.oa-pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+/* 键盘焦点可见性 */
+:focus-visible {
+  outline: 2px solid var(--oa-signal);
+  outline-offset: 1px;
+}
+
+/* 侧栏菜单深色适配 */
+.oa-sidebar {
+  background: var(--oa-navy);
+
+  .el-menu {
+    border-right: none;
+    background: transparent;
+  }
+
+  .el-menu-item,
+  .el-sub-menu__title {
+    color: #9fb3c8;
+
+    &:hover {
+      background: var(--oa-navy-soft);
+      color: #fff;
+    }
+  }
+
+  .el-menu-item.is-active {
+    color: #fff;
+    background: var(--oa-primary);
+
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--oa-signal);
+    }
+  }
+}
+
+/* 页面切换过渡 */
+.oa-fade-enter-active,
+.oa-fade-leave-active {
+  transition: opacity 0.18s ease;
+}
+.oa-fade-enter-from,
+.oa-fade-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 表格统一风格：斑马纹由组件 stripe 控制，此处收紧行高 */
+.el-table th.el-table__cell {
+  background: #f7f9fc !important;
+  color: var(--oa-navy);
+  font-weight: 600;
+}

@@ -1,0 +1,766 @@
+{
+  "info": {
+    "name": "OA 办公管理系统 接口测试",
+    "_postman_id": "oa-system-demo",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "登录 admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/auth/login",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"admin\", \"password\": \"123456\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var d = pm.response.json().data;",
+              "pm.collectionVariables.set('token', d.token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "用户名唯一性校验",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/auth/username-exists",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "username-exists"
+          ],
+          "query": [
+            {
+              "key": "username",
+              "value": "admin"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "注册员工",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/auth/register",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "register"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"newguy01\", \"password\": \"test1234\", \"name\": \"新同事\", \"gender\": 1, \"phone\": \"13812345678\", \"email\": \"new@tianyu.com\", \"deptId\": 6}"
+        }
+      }
+    },
+    {
+      "name": "退出登录",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/auth/logout",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "logout"
+          ]
+        }
+      }
+    },
+    {
+      "name": "员工分页查询",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/admin/employees",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "employees"
+          ],
+          "query": [
+            {
+              "key": "name",
+              "value": ""
+            },
+            {
+              "key": "empNo",
+              "value": ""
+            },
+            {
+              "key": "deptId",
+              "value": ""
+            },
+            {
+              "key": "status",
+              "value": ""
+            },
+            {
+              "key": "pageNum",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "新增员工",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/admin/employees",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "employees"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"demo001\", \"name\": \"演示员工\", \"gender\": 1, \"phone\": \"13900001111\", \"email\": \"demo@tianyu.com\", \"deptId\": 6, \"hireDate\": \"2026-09-01\", \"status\": 1}"
+        }
+      }
+    },
+    {
+      "name": "编辑员工",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/admin/employees/1",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "employees",
+            "1"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"zhangwei\", \"name\": \"张伟\", \"gender\": 1, \"phone\": \"13800000001\", \"email\": \"zhangwei@tianyu.com\", \"deptId\": 6, \"hireDate\": \"2026-01-05\", \"status\": 1}"
+        }
+      }
+    },
+    {
+      "name": "删除员工",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/admin/employees/8",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "employees",
+            "8"
+          ]
+        }
+      }
+    },
+    {
+      "name": "批量删除员工",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/admin/employees/batch",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "employees",
+            "batch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "[8, 9]"
+        }
+      }
+    },
+    {
+      "name": "重置员工密码",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/admin/employees/1/password/reset",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "employees",
+            "1",
+            "password",
+            "reset"
+          ]
+        }
+      }
+    },
+    {
+      "name": "禁用账号",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/admin/employees/1/status",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "employees",
+            "1",
+            "status"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "0"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "部门分页",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/admin/depts",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "depts"
+          ],
+          "query": [
+            {
+              "key": "keyword",
+              "value": ""
+            },
+            {
+              "key": "pageNum",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "部门树",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/depts/tree",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "depts",
+            "tree"
+          ]
+        }
+      }
+    },
+    {
+      "name": "新增部门",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/admin/depts",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "depts"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"deptName\": \"测试组\", \"parentId\": 1, \"sortNo\": 9}"
+        }
+      }
+    },
+    {
+      "name": "编辑部门",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/admin/depts/6",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "depts",
+            "6"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"deptName\": \"后端开发组\", \"parentId\": 1, \"sortNo\": 1}"
+        }
+      }
+    },
+    {
+      "name": "删除部门",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/admin/depts/99",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "depts",
+            "99"
+          ]
+        }
+      }
+    },
+    {
+      "name": "公告管理分页",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/admin/notices",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "notices"
+          ],
+          "query": [
+            {
+              "key": "title",
+              "value": ""
+            },
+            {
+              "key": "type",
+              "value": ""
+            },
+            {
+              "key": "beginTime",
+              "value": ""
+            },
+            {
+              "key": "endTime",
+              "value": ""
+            },
+            {
+              "key": "pageNum",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "发布公告",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/admin/notices",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "notices"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"title\": \"接口测试公告\", \"content\": \"正文内容\", \"type\": 1, \"topFlag\": 1, \"publish\": true}"
+        }
+      }
+    },
+    {
+      "name": "编辑公告",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/admin/notices/1",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "notices",
+            "1"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"title\": \"关于公司数据中心网络升级完成的通知\", \"content\": \"更新后的正文\", \"type\": 1, \"topFlag\": 1}"
+        }
+      }
+    },
+    {
+      "name": "公告上下架切换",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/admin/notices/1/toggle",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "notices",
+            "1",
+            "toggle"
+          ]
+        }
+      }
+    },
+    {
+      "name": "删除公告",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/admin/notices/99",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "notices",
+            "99"
+          ]
+        }
+      }
+    },
+    {
+      "name": "员工端公告列表",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/notices",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "notices"
+          ],
+          "query": [
+            {
+              "key": "type",
+              "value": ""
+            },
+            {
+              "key": "pageNum",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "公告详情",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/notices/1",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "notices",
+            "1"
+          ]
+        }
+      }
+    },
+    {
+      "name": "我的档案",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/user/profile",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "user",
+            "profile"
+          ]
+        }
+      }
+    },
+    {
+      "name": "修改资料",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/user/profile",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "user",
+            "profile"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"phone\": \"13800000001\", \"email\": \"zhangwei@tianyu.com\"}"
+        }
+      }
+    },
+    {
+      "name": "修改密码",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/user/password",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "user",
+            "password"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"oldPassword\": \"123456\", \"newPassword\": \"abc12345\"}"
+        }
+      }
+    },
+    {
+      "name": "仪表盘统计",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/admin/dashboard/stats",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "dashboard",
+            "stats"
+          ]
+        }
+      }
+    },
+    {
+      "name": "部门人员占比",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/admin/dashboard/dept-emp",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "dashboard",
+            "dept-emp"
+          ]
+        }
+      }
+    },
+    {
+      "name": "最新公告",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/admin/dashboard/latest-notices",
+          "host": [
+            "http://localhost:8080"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "dashboard",
+            "latest-notices"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianyu.oasystem.mapper.EmpEmployeeMapper">
+
+    <sql id="voColumns">
+        e.emp_id, e.emp_no, e.name, e.gender, e.phone, e.email,
+        e.dept_id, d.dept_name, e.hire_date, e.status,
+        u.username, u.status AS account_status
+    </sql>
+
+    <!-- 多条件模糊搜索 + 分页（PageHelper 拦截） -->
+    <select id="selectPage" resultType="com.tianyu.oasystem.vo.EmployeeVO">
+        SELECT <include refid="voColumns"/>
+        FROM emp_employee e
+        LEFT JOIN sys_dept d ON d.dept_id = e.dept_id
+        LEFT JOIN sys_user u ON u.emp_id = e.emp_id
+        <where>
+            <if test="name != null and name != ''">
+                AND e.name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="empNo != null and empNo != ''">
+                AND e.emp_no LIKE CONCAT('%', #{empNo}, '%')
+            </if>
+            <if test="deptId != null">
+                AND e.dept_id = #{deptId}
+            </if>
+            <if test="status != null">
+                AND e.status = #{status}
+            </if>
+        </where>
+        ORDER BY e.emp_id DESC
+    </select>
+
+    <select id="selectVOById" resultType="com.tianyu.oasystem.vo.EmployeeVO">
+        SELECT <include refid="voColumns"/>
+        FROM emp_employee e
+        LEFT JOIN sys_dept d ON d.dept_id = e.dept_id
+        LEFT JOIN sys_user u ON u.emp_id = e.emp_id
+        WHERE e.emp_id = #{empId}
+    </select>
+
+    <select id="selectById" resultType="EmpEmployee">
+        SELECT emp_id, emp_no, name, gender, phone, email, dept_id, hire_date, status, create_time
+        FROM emp_employee
+        WHERE emp_id = #{empId}
+    </select>
+
+    <select id="selectProfileByEmpId" resultType="com.tianyu.oasystem.vo.ProfileVO">
+        SELECT e.emp_id, e.emp_no, e.name, e.gender, e.phone, e.email,
+               e.hire_date, d.dept_name
+        FROM emp_employee e
+        LEFT JOIN sys_dept d ON d.dept_id = e.dept_id
+        WHERE e.emp_id = #{empId}
+    </select>
+
+    <select id="countByDeptId" resultType="int">
+        SELECT COUNT(*) FROM emp_employee WHERE dept_id = #{deptId} AND status = 1
+    </select>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM emp_employee
+    </select>
+
+    <select id="countOnJob" resultType="int">
+        SELECT COUNT(*) FROM emp_employee WHERE status = 1
+    </select>
+
+    <select id="selectMaxEmpNo" resultType="string">
+        SELECT MAX(emp_no) FROM emp_employee WHERE emp_no LIKE CONCAT(#{prefix}, '%')
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="empId">
+        INSERT INTO emp_employee (emp_no, name, gender, phone, email, dept_id, hire_date, status)
+        VALUES (#{empNo}, #{name}, #{gender}, #{phone}, #{email}, #{deptId}, #{hireDate}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE emp_employee
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+            <if test="hireDate != null">hire_date = #{hireDate},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE emp_id = #{empId}
+    </update>
+
+    <update id="updateProfile">
+        UPDATE emp_employee SET phone = #{phone}, email = #{email} WHERE emp_id = #{empId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM emp_employee WHERE emp_id = #{empId}
+    </delete>
+
+    <delete id="deleteByIds">
+        DELETE FROM emp_employee WHERE emp_id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 员工归属部门向上归并到一级部门后统计人数 -->
+    <select id="selectDeptEmpStats" resultType="com.tianyu.oasystem.vo.NameValueVO">
+        SELECT root_name AS name, COUNT(*) AS value
+        FROM (
+            SELECT CASE
+                WHEN d.parent_id = 0 THEN d.dept_name
+                ELSE p.dept_name
+            END AS root_name
+            FROM emp_employee e
+            LEFT JOIN sys_dept d ON d.dept_id = e.dept_id
+            LEFT JOIN sys_dept p ON p.dept_id = d.parent_id
+            WHERE e.status = 1
+        ) t
+        GROUP BY root_name
+        ORDER BY value DESC
+    </select>
+
+</mapper>

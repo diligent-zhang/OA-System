@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianyu.oasystem.mapper.SysNoticeMapper">
+
+    <sql id="voColumns">
+        n.notice_id, n.title, n.content, n.type, n.top_flag, n.status,
+        n.publisher_id, n.publish_time, u.username AS publisher_name
+    </sql>
+
+    <sql id="queryConditions">
+        <where>
+            <if test="title != null and title != ''">
+                AND n.title LIKE CONCAT('%', #{title}, '%')
+            </if>
+            <if test="type != null">
+                AND n.type = #{type}
+            </if>
+            <if test="beginTime != null and beginTime != ''">
+                AND n.publish_time &gt;= #{beginTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND n.publish_time &lt;= CONCAT(#{endTime}, ' 23:59:59')
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectPageAdmin" resultType="com.tianyu.oasystem.vo.NoticeVO">
+        SELECT <include refid="voColumns"/>
+        FROM sys_notice n
+        LEFT JOIN sys_user u ON u.user_id = n.publisher_id
+        <include refid="queryConditions"/>
+        ORDER BY n.top_flag DESC, n.publish_time DESC
+    </select>
+
+    <select id="selectPagePublished" resultType="com.tianyu.oasystem.vo.NoticeVO">
+        SELECT <include refid="voColumns"/>
+        FROM sys_notice n
+        LEFT JOIN sys_user u ON u.user_id = n.publisher_id
+        WHERE n.status = 1
+        <if test="title != null and title != ''">
+            AND n.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="type != null">
+            AND n.type = #{type}
+        </if>
+        <if test="beginTime != null and beginTime != ''">
+            AND n.publish_time &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND n.publish_time &lt;= CONCAT(#{endTime}, ' 23:59:59')
+        </if>
+        ORDER BY n.top_flag DESC, n.publish_time DESC
+    </select>
+
+    <select id="selectVOById" resultType="com.tianyu.oasystem.vo.NoticeVO">
+        SELECT <include refid="voColumns"/>
+        FROM sys_notice n
+        LEFT JOIN sys_user u ON u.user_id = n.publisher_id
+        WHERE n.notice_id = #{noticeId}
+    </select>
+
+    <select id="selectById" resultType="SysNotice">
+        SELECT notice_id, title, content, type, top_flag, status, publisher_id, publish_time
+        FROM sys_notice
+        WHERE notice_id = #{noticeId}
+    </select>
+
+    <select id="selectLatest" resultType="com.tianyu.oasystem.vo.NoticeVO">
+        SELECT <include refid="voColumns"/>
+        FROM sys_notice n
+        LEFT JOIN sys_user u ON u.user_id = n.publisher_id
+        WHERE n.status = 1
+        ORDER BY n.top_flag DESC, n.publish_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM sys_notice
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="noticeId">
+        INSERT INTO sys_notice (title, content, type, top_flag, status, publisher_id, publish_time)
+        VALUES (#{title}, #{content}, #{type}, #{topFlag}, #{status}, #{publisherId}, NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE sys_notice
+        SET title = #{title}, content = #{content}, type = #{type},
+            top_flag = #{topFlag}, status = #{status}
+        WHERE notice_id = #{noticeId}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE sys_notice SET status = #{status} WHERE notice_id = #{noticeId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM sys_notice WHERE notice_id = #{noticeId}
+    </delete>
+
+</mapper>
