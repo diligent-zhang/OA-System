@@ -13,11 +13,14 @@ public class ProfileVO {
     private Long userId;
     private String username;
     private String role;
+    private String avatarUrl;
 
     private Long empId;
+    private Long deptId;
     private String empNo;
     private String name;
     private Integer gender;
+    private String position;
     private String phone;
     private String email;
     private String deptName;

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianyu.oasystem.mapper.FlowTaskMapper">
+
+    <sql id="columns">
+        task_id, instance_id, node_id, node_name, assignee_user_id, assignee_name,
+        status, comment, handle_time
+    </sql>
+
+    <sql id="todoColumns">
+        t.task_id, t.instance_id, t.node_name, t.status AS task_status,
+        t.create_time, t.handle_time,
+        i.def_name, i.category, i.title, i.applicant_name, i.status AS instance_status
+    </sql>
+
+    <select id="selectById" resultType="FlowTask">
+        SELECT <include refid="columns"/> FROM flow_task WHERE task_id = #{taskId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="taskId">
+        INSERT INTO flow_task (instance_id, node_id, node_name, assignee_user_id, assignee_name, status)
+        VALUES (#{instanceId}, #{nodeId}, #{nodeName}, #{assigneeUserId}, #{assigneeName}, 'PENDING')
+    </insert>
+
+    <select id="selectByInstance" resultType="FlowTask">
+        SELECT <include refid="columns"/>
+        FROM flow_task
+        WHERE instance_id = #{instanceId}
+        ORDER BY task_id ASC
+    </select>
+
+    <select id="selectTodoPage" resultType="com.tianyu.oasystem.vo.FlowTodoVO">
+        SELECT <include refid="todoColumns"/>
+        FROM flow_task t
+        INNER JOIN flow_instance i ON i.instance_id = t.instance_id
+        WHERE t.assignee_user_id = #{userId} AND t.status = 'PENDING' AND i.deleted = 0
+        ORDER BY t.task_id DESC
+    </select>
+
+    <select id="selectDonePage" resultType="com.tianyu.oasystem.vo.FlowTodoVO">
+        SELECT <include refid="todoColumns"/>
+        FROM flow_task t
+        INNER JOIN flow_instance i ON i.instance_id = t.instance_id
+        WHERE t.assignee_user_id = #{userId}
+        AND t.status IN ('APPROVED', 'REJECTED', 'TRANSFERRED')
+        AND i.deleted = 0
+        ORDER BY t.handle_time DESC, t.task_id DESC
+    </select>
+
+    <select id="selectPendingByInstance" resultType="FlowTask">
+        SELECT <include refid="columns"/>
+        FROM flow_task
+        WHERE instance_id = #{instanceId} AND status = 'PENDING'
+        ORDER BY task_id ASC
+    </select>
+
+    <update id="updateHandle">
+        UPDATE flow_task SET status = #{status}, comment = #{comment}, handle_time = #{handleTime}
+        WHERE task_id = #{taskId}
+    </update>
+
+    <update id="markTransfer">
+        UPDATE flow_task SET status = 'TRANSFERRED', comment = #{comment}, handle_time = #{handleTime}
+        WHERE task_id = #{taskId}
+    </update>
+
+    <select id="countPendingByInstance" resultType="int">
+        SELECT COUNT(*) FROM flow_task WHERE instance_id = #{instanceId} AND status = 'PENDING'
+    </select>
+
+    <select id="countTodoByUser" resultType="int">
+        SELECT COUNT(*)
+        FROM flow_task t
+        INNER JOIN flow_instance i ON i.instance_id = t.instance_id
+        WHERE t.assignee_user_id = #{userId} AND t.status = 'PENDING' AND i.deleted = 0
+    </select>
+
+</mapper>

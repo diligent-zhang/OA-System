@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianyu.oasystem.mapper.DocFileMapper">
+
+    <sql id="columns">
+        file_id, folder_id, name, original_name, stored_name, path, ext, size,
+        content_type, uploader_id, uploader_name, version_num, upload_time, deleted
+    </sql>
+
+    <select id="selectById" resultType="DocFile">
+        SELECT <include refid="columns"/>
+        FROM doc_file
+        WHERE file_id = #{fileId} AND deleted = 0
+    </select>
+
+    <select id="selectByFolder" resultType="DocFile">
+        SELECT <include refid="columns"/>
+        FROM doc_file
+        WHERE folder_id = #{folderId} AND deleted = 0
+        ORDER BY upload_time DESC, file_id DESC
+    </select>
+
+    <select id="searchByName" resultType="DocFile">
+        SELECT <include refid="columns"/>
+        FROM doc_file
+        WHERE deleted = 0 AND name LIKE CONCAT('%', #{name}, '%')
+        ORDER BY upload_time DESC
+    </select>
+
+    <select id="countByFolderAndName" resultType="int">
+        SELECT COUNT(*)
+        FROM doc_file
+        WHERE folder_id = #{folderId} AND deleted = 0 AND name = #{name}
+    </select>
+
+    <select id="countByFolder" resultType="int">
+        SELECT COUNT(*)
+        FROM doc_file
+        WHERE folder_id = #{folderId} AND deleted = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="fileId">
+        INSERT INTO doc_file (folder_id, name, original_name, stored_name, path, ext, size,
+                              content_type, uploader_id, uploader_name, version_num)
+        VALUES (#{folderId}, #{name}, #{originalName}, #{storedName}, #{path}, #{ext}, #{size},
+                #{contentType}, #{uploaderId}, #{uploaderName}, 1)
+    </insert>
+
+    <update id="updateName">
+        UPDATE doc_file SET name = #{name} WHERE file_id = #{fileId}
+    </update>
+
+    <update id="updateVersion">
+        UPDATE doc_file SET original_name = #{originalName}, stored_name = #{storedName},
+                            path = #{path}, size = #{size}, content_type = #{contentType},
+                            version_num = #{versionNum}, upload_time = NOW()
+        WHERE file_id = #{fileId}
+    </update>
+
+    <update id="markDeleted">
+        UPDATE doc_file SET deleted = 1 WHERE file_id = #{fileId}
+    </update>
+
+</mapper>

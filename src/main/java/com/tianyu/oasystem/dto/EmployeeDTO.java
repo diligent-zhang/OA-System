@@ -34,6 +34,9 @@ public class EmployeeDTO {
     @NotNull(message = "请选择所属部门")
     private Long deptId;
 
+    /** 岗位 */
+    private String position;
+
     @NotNull(message = "请选择入职日期")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate hireDate;

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianyu.oasystem.mapper.DocFileVersionMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="versionId">
+        INSERT INTO doc_file_version (file_id, version_no, original_name, stored_name, path,
+                                      size, uploader_id, uploader_name)
+        VALUES (#{fileId}, #{versionNo}, #{originalName}, #{storedName}, #{path},
+                #{size}, #{uploaderId}, #{uploaderName})
+    </insert>
+
+    <select id="selectByFile" resultType="DocFileVersion">
+        SELECT version_id, file_id, version_no, original_name, stored_name, path, size,
+               uploader_id, uploader_name, update_time
+        FROM doc_file_version
+        WHERE file_id = #{fileId}
+        ORDER BY version_no DESC
+    </select>
+
+    <select id="selectById" resultType="DocFileVersion">
+        SELECT version_id, file_id, version_no, original_name, stored_name, path, size,
+               uploader_id, uploader_name, update_time
+        FROM doc_file_version
+        WHERE version_id = #{versionId}
+    </select>
+
+</mapper>

@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { myProfile, updateProfile } from '@/api'
+import { myProfile, updateProfile, avatarUpload } from '@/api'
 import { auth } from '@/stores/auth'
 
 const profile = ref({})
@@ -10,6 +10,31 @@ const saving = ref(false)
 const formRef = ref()
 const editing = ref(false)
 const form = reactive({ phone: '', email: '' })
+const avatarUploading = ref(false)
+const avatarInputRef = ref()
+
+async function onAvatarChange(event) {
+  const file = event.target.files[0]
+  if (!file) return
+  if (!file.type.startsWith('image/')) {
+    ElMessage.warning('请上传图片文件')
+    return
+  }
+  avatarUploading.value = true
+  try {
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await avatarUpload(fd)
+    profile.value.avatarUrl = res.data
+    // 同步顶部菜单头像
+    const user = auth.user || {}
+    auth.setUser({ ...user, avatarUrl: res.data })
+    ElMessage.success('头像已更新')
+  } finally {
+    avatarUploading.value = false
+    if (avatarInputRef.value) avatarInputRef.value.value = ''
+  }
+}
 
 const rules = {
   phone: [{ required: true, pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }],
@@ -47,11 +72,18 @@ async function save() {
   <div v-loading="loading" class="profile-wrap">
     <!-- 身份卡 -->
     <div class="id-card">
-      <el-avatar :size="56" class="avatar">{{ (profile.name || 'U').charAt(0) }}</el-avatar>
+      <div class="avatar-box">
+        <el-avatar :size="56" class="avatar">
+          <img v-if="profile.avatarUrl" :src="`http://localhost:8080/api/file/avatar/${profile.userId}`" alt="avatar" />
+          <span v-else>{{ (profile.name || 'U').charAt(0) }}</span>
+        </el-avatar>
+        <el-button size="small" class="avatar-btn" :loading="avatarUploading" @click="avatarInputRef?.click()">更换头像</el-button>
+        <input ref="avatarInputRef" type="file" accept="image/*" style="display: none" @change="onAvatarChange" />
+      </div>
       <div class="id-name">{{ profile.name || auth.user?.username }}</div>
       <div class="id-no oa-mono">{{ profile.empNo || 'ADMIN' }}</div>
-      <el-tag :type="profile.role === 'ADMIN' ? 'primary' : 'success'" size="small" effect="dark">
-        {{ profile.role === 'ADMIN' ? '管理员' : '普通员工' }}
+      <el-tag :type="profile.role === 'ADMIN' ? 'danger' : profile.role === 'DEPT_ADMIN' ? 'warning' : 'success'" size="small" effect="dark">
+        {{ profile.role === 'ADMIN' ? '超级管理员' : profile.role === 'DEPT_ADMIN' ? '部门管理员' : '普通员工' }}
       </el-tag>
     </div>
 
@@ -120,6 +152,9 @@ async function save() {
   font-size: 24px;
   font-weight: 700;
 }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.avatar-box { text-align: center; position: relative; }
+.avatar-btn { margin-top: 8px; font-size: 12px; }
 
 .id-name { font-size: 17px; font-weight: 600; }
 

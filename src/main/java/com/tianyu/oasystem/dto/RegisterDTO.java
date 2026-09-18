@@ -41,6 +41,9 @@ public class RegisterDTO {
 
     private Long deptId;
 
+    /** 岗位（可选） */
+    private String position;
+
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate hireDate;
 }

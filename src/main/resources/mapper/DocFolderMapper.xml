@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianyu.oasystem.mapper.DocFolderMapper">
+
+    <sql id="columns">
+        folder_id, parent_id, name, create_by, create_time
+    </sql>
+
+    <select id="selectById" resultType="DocFolder">
+        SELECT <include refid="columns"/> FROM doc_folder WHERE folder_id = #{folderId}
+    </select>
+
+    <select id="selectAll" resultType="DocFolder">
+        SELECT <include refid="columns"/> FROM doc_folder ORDER BY parent_id ASC, folder_id ASC
+    </select>
+
+    <select id="countChildren" resultType="int">
+        SELECT COUNT(*) FROM doc_folder WHERE parent_id = #{parentId}
+    </select>
+
+    <select id="countFiles" resultType="int">
+        SELECT COUNT(*) FROM doc_file WHERE folder_id = #{folderId} AND deleted = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="folderId">
+        INSERT INTO doc_folder (parent_id, name, create_by)
+        VALUES (#{parentId}, #{name}, #{createBy})
+    </insert>
+
+    <update id="updateName">
+        UPDATE doc_folder SET name = #{name} WHERE folder_id = #{folderId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM doc_folder WHERE folder_id = #{folderId}
+    </delete>
+
+</mapper>

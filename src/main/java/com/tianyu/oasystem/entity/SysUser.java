@@ -13,6 +13,7 @@ public class SysUser {
     private String password;
     private String role;
     private Long empId;
+    private String avatarUrl;
     private Integer status;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

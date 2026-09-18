@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianyu.oasystem.mapper.SysAttachmentMapper">
+
+    <sql id="baseColumns">
+        file_id, biz_type, biz_id, original_name, stored_name, path, size, content_type, uploader_id, upload_time
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="fileId">
+        INSERT INTO sys_attachment (biz_type, biz_id, original_name, stored_name, path, size, content_type, uploader_id)
+        VALUES (#{bizType}, #{bizId}, #{originalName}, #{storedName}, #{path}, #{size}, #{contentType}, #{uploaderId})
+    </insert>
+
+    <select id="selectByBiz" resultType="SysAttachment">
+        SELECT <include refid="baseColumns"/>
+        FROM sys_attachment
+        WHERE biz_type = #{bizType} AND biz_id = #{bizId}
+        ORDER BY file_id ASC
+    </select>
+
+    <select id="selectById" resultType="SysAttachment">
+        SELECT <include refid="baseColumns"/>
+        FROM sys_attachment
+        WHERE file_id = #{fileId}
+    </select>
+
+    <delete id="deleteById">
+        DELETE FROM sys_attachment WHERE file_id = #{fileId}
+    </delete>
+
+    <update id="updateBizId">
+        UPDATE sys_attachment SET biz_id = #{bizId} WHERE file_id = #{fileId}
+    </update>
+
+</mapper>

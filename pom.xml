@@ -76,6 +76,12 @@
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
 
+        <!-- 操作日志 AOP 切面 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>

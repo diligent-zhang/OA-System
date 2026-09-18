@@ -4,7 +4,7 @@
 <mapper namespace="com.tianyu.oasystem.mapper.SysUserMapper">
 
     <sql id="baseColumns">
-        user_id, username, password, role, emp_id, status, create_time
+        user_id, username, password, role, emp_id, avatar_url, status, create_time
     </sql>
 
     <select id="selectByUsername" resultType="SysUser">
@@ -50,5 +50,43 @@
     <delete id="deleteByEmpId">
         DELETE FROM sys_user WHERE emp_id = #{empId}
     </delete>
+
+    <update id="updateRole">
+        UPDATE sys_user SET role = #{role} WHERE user_id = #{userId}
+    </update>
+
+    <update id="updateAvatar">
+        UPDATE sys_user SET avatar_url = #{avatarUrl} WHERE user_id = #{userId}
+    </update>
+
+    <select id="selectAllActiveUserIds" resultType="long">
+        SELECT user_id FROM sys_user WHERE status = 1
+    </select>
+
+    <select id="countActive" resultType="int">
+        SELECT COUNT(*) FROM sys_user WHERE status = 1
+    </select>
+
+    <select id="selectAllActiveUsernames" resultType="string">
+        SELECT username FROM sys_user WHERE status = 1
+    </select>
+
+    <select id="selectUserIdsByRole" resultType="long">
+        SELECT user_id FROM sys_user WHERE status = 1 AND role = #{role}
+    </select>
+
+    <select id="selectDeptAdminUserIds" resultType="long">
+        SELECT u.user_id
+        FROM sys_user u
+        INNER JOIN emp_employee e ON e.emp_id = u.emp_id
+        WHERE u.status = 1 AND e.status = 1 AND u.role = 'DEPT_ADMIN' AND e.dept_id = #{deptId}
+    </select>
+
+    <select id="selectUserIdsByDeptId" resultType="long">
+        SELECT u.user_id
+        FROM sys_user u
+        INNER JOIN emp_employee e ON e.emp_id = u.emp_id
+        WHERE u.status = 1 AND e.status = 1 AND e.dept_id = #{deptId}
+    </select>
 
 </mapper>

@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class NoticeDTO {
 
@@ -22,4 +24,7 @@ public class NoticeDTO {
 
     /** true 保存后立即发布，false 下架状态（草稿） */
     private Boolean publish = true;
+
+    /** 已上传附件的 fileId 列表（先上传附件，再随公告提交绑定） */
+    private List<Long> attachmentFileIds;
 }

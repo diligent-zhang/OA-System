@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianyu.oasystem.mapper.SysMessageMapper">
+
+    <sql id="baseColumns">
+        msg_id, receiver_user_id, msg_type, title, content, biz_link, is_read, create_time
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="msgId">
+        INSERT INTO sys_message (receiver_user_id, msg_type, title, content, biz_link, is_read)
+        VALUES (#{receiverUserId}, #{msgType}, #{title}, #{content}, #{bizLink}, 0)
+    </insert>
+
+    <select id="selectPage" resultType="SysMessage">
+        SELECT <include refid="baseColumns"/>
+        FROM sys_message
+        <where>
+            receiver_user_id = #{receiverUserId}
+            <if test="msgType != null">AND msg_type = #{msgType}</if>
+            <if test="isRead != null">AND is_read = #{isRead}</if>
+        </where>
+        ORDER BY is_read ASC, create_time DESC
+    </select>
+
+    <select id="countUnread" resultType="int">
+        SELECT COUNT(*) FROM sys_message
+        WHERE receiver_user_id = #{receiverUserId} AND is_read = 0
+    </select>
+
+    <select id="selectById" resultType="SysMessage">
+        SELECT <include refid="baseColumns"/>
+        FROM sys_message
+        WHERE msg_id = #{msgId}
+    </select>
+
+    <update id="markRead">
+        UPDATE sys_message SET is_read = 1
+        WHERE msg_id = #{msgId} AND receiver_user_id = #{userId}
+    </update>
+
+    <update id="markAllRead">
+        UPDATE sys_message SET is_read = 1
+        WHERE receiver_user_id = #{userId} AND is_read = 0
+    </update>
+
+</mapper>

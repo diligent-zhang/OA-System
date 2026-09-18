@@ -72,7 +72,9 @@ function onTypeChange() {
         <div class="line1">
           <el-tag v-if="n.topFlag === 1" type="danger" size="small" effect="dark">置顶</el-tag>
           <el-tag :type="TYPE_TAG[n.type]" size="small" effect="plain">{{ TYPE_LABEL[n.type] }}</el-tag>
-          <span class="title">{{ n.title }}</span>
+          <span class="title" :class="{ 'muted-title': n.readFlag }">{{ n.title }}</span>
+          <span v-if="!n.readFlag" class="unread-dot" title="未读"></span>
+          <span v-if="n.attachCount" class="attach-num"><el-icon><Paperclip /></el-icon>{{ n.attachCount }}</span>
         </div>
         <div class="meta">
           <span>{{ n.publisherName }}</span>
@@ -101,6 +103,12 @@ function onTypeChange() {
         </div>
         <el-divider />
         <pre class="d-body">{{ dialog.data.content }}</pre>
+        <div v-if="dialog.data.attachments && dialog.data.attachments.length" class="d-attachments">
+          <div class="d-att-title">附件（{{ dialog.data.attachments.length }}）</div>
+          <a v-for="att in dialog.data.attachments" :key="att.fileId" :href="att.downloadUrl" target="_blank" class="d-att">
+            <el-icon><Paperclip /></el-icon>{{ att.originalName }}
+          </a>
+        </div>
       </div>
     </el-dialog>
   </div>
@@ -150,7 +158,11 @@ function onTypeChange() {
   color: var(--oa-navy);
 }
 
-.notice-stream li:hover .title { color: var(--oa-primary); }
+.line1 .title.muted-title { color: var(--oa-ink-light); font-weight: 400; }
+.line1 .unread-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; flex-shrink: 0; }
+.line1 .attach-num { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; color: var(--oa-ink-light); }
+
+.notice-stream li:hover .title:not(.muted-title) { color: var(--oa-primary); }
 
 .meta {
   margin-top: 6px;
@@ -182,5 +194,15 @@ function onTypeChange() {
   font-size: 14px;
   line-height: 1.9;
   margin: 0;
+}
+.d-attachments { margin-top: 16px; }
+.d-att-title { font-size: 13px; color: var(--oa-ink-light); margin-bottom: 8px; }
+.d-att {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--oa-primary);
+  font-size: 13px;
+  padding: 6px 0;
 }
 </style>

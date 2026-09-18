@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianyu.oasystem.mapper.FlowCommentMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="commentId">
+        INSERT INTO flow_comment (instance_id, task_id, user_id, username, action, content)
+        VALUES (#{instanceId}, #{taskId}, #{userId}, #{username}, #{action}, #{content})
+    </insert>
+
+    <select id="selectByInstance" resultType="FlowComment">
+        SELECT comment_id, instance_id, task_id, user_id, username, action, content, create_time
+        FROM flow_comment
+        WHERE instance_id = #{instanceId}
+        ORDER BY comment_id ASC
+    </select>
+
+</mapper>

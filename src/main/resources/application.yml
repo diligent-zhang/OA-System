@@ -9,6 +9,10 @@ spring:
     url: jdbc:mysql://localhost:3306/oa_system?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
     username: root
     password: root
+  servlet:
+    multipart:
+      max-file-size: 50MB    # 单文件上限（业务侧另有 sys_config 附件大小限制校验）
+      max-request-size: 100MB
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
@@ -21,11 +25,16 @@ pagehelper:
   reasonable: true          # 页码越界自动纠正
   support-methods-arguments: true
 
+oa:
+  upload-dir: ./upload       # 本地文件存储根目录
+
 jwt:
   secret: tianyu-oa-system-jwt-secret-key-2026-internship-project
   expire-minutes: 120       # Token 有效期 2 小时
   renew-threshold-minutes: 30  # 剩余不足 30 分钟自动续期
 
 logging:
+  file:
+    name: ./logs/oa-system.log
   level:
     com.tianyu.oasystem.mapper: debug

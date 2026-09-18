@@ -21,6 +21,9 @@ public interface EmpEmployeeMapper {
 
     int countByDeptId(@Param("deptId") Long deptId);
 
+    /** 在职员工简要列表（考勤报表/通讯录用；deptIds 为空不限） */
+    List<EmployeeVO> selectActiveList(@Param("deptIds") List<Long> deptIds);
+
     int countAll();
 
     int countOnJob();

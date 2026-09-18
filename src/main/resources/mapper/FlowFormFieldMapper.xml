@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianyu.oasystem.mapper.FlowFormFieldMapper">
+
+    <select id="selectByFormId" resultType="FlowFormField">
+        SELECT field_id, form_id, field_key, label, field_type, options, required, sort_no
+        FROM flow_form_field
+        WHERE form_id = #{formId}
+        ORDER BY sort_no ASC, field_id ASC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="fieldId">
+        INSERT INTO flow_form_field (form_id, field_key, label, field_type, options, required, sort_no)
+        VALUES (#{formId}, #{fieldKey}, #{label}, #{fieldType}, #{options}, #{required}, #{sortNo})
+    </insert>
+
+    <delete id="deleteByFormId">
+        DELETE FROM flow_form_field WHERE form_id = #{formId}
+    </delete>
+
+</mapper>

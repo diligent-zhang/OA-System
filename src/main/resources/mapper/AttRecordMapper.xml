@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianyu.oasystem.mapper.AttRecordMapper">
+
+    <sql id="columns">
+        id, emp_id, record_date, clock_in, clock_out, status, source, remark, create_time
+    </sql>
+
+    <select id="selectByEmpAndDate" resultType="AttRecord">
+        SELECT <include refid="columns"/>
+        FROM att_record
+        WHERE emp_id = #{empId} AND record_date = #{date}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO att_record (emp_id, record_date, clock_in, clock_out, status, source, remark)
+        VALUES (#{empId}, #{recordDate}, #{clockIn}, #{clockOut}, #{status}, #{source}, #{remark})
+    </insert>
+
+    <update id="updateClockIn">
+        UPDATE att_record SET clock_in = #{clockIn}, status = #{status} WHERE id = #{id}
+    </update>
+
+    <update id="updateClockOut">
+        UPDATE att_record SET clock_out = #{clockOut}, status = #{status} WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE att_record SET status = #{status}, remark = #{remark} WHERE id = #{id}
+    </update>
+
+    <select id="selectByEmpMonth" resultType="AttRecord">
+        SELECT <include refid="columns"/>
+        FROM att_record
+        WHERE emp_id = #{empId}
+        AND record_date &gt;= #{begin} AND record_date &lt;= #{end}
+        ORDER BY record_date ASC
+    </select>
+
+    <select id="selectMonth" resultType="AttRecord">
+        SELECT <include refid="columns"/>
+        FROM att_record
+        WHERE record_date &gt;= #{begin} AND record_date &lt;= #{end}
+        <if test="deptIds != null and deptIds.size() > 0">
+            AND emp_id IN (
+                SELECT emp_id FROM emp_employee WHERE status = 1
+                AND dept_id IN
+                <foreach collection="deptIds" item="d" open="(" separator="," close=")">
+                    #{d}
+                </foreach>
+            )
+        </if>
+        ORDER BY emp_id ASC, record_date ASC
+    </select>
+
+</mapper>

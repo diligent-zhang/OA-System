@@ -43,9 +43,14 @@ public class JwtInterceptor implements HandlerInterceptor {
             return reject(response, ResultCode.UNAUTHORIZED, "登录状态无效，请重新登录");
         }
 
-        // 管理员接口权限校验（越权访问控制）
-        if (request.getRequestURI().startsWith("/api/admin") && !principal.isAdmin()) {
-            return reject(response, ResultCode.FORBIDDEN, "权限不足，仅管理员可操作");
+        // 越权访问控制：/api/admin 仅超级管理员；/api/dept-admin 允许部门管理员及以上
+        String uri = request.getRequestURI();
+        if (uri.startsWith("/api/admin") && !principal.isAdmin()) {
+            return reject(response, ResultCode.FORBIDDEN, "权限不足，仅超级管理员可操作");
+        }
+        if (uri.startsWith("/api/dept-admin")
+                && !(principal.isAdmin() || "DEPT_ADMIN".equals(principal.getRole()))) {
+            return reject(response, ResultCode.FORBIDDEN, "权限不足，需部门管理员及以上");
         }
 
         // Token 自动续期：临近过期时通过响应头下发新 Token

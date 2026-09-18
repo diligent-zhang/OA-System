@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianyu.oasystem.mapper.DocFolderPermMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO doc_folder_perm (folder_id, perm_type, grant_type, grant_id)
+        VALUES (#{folderId}, #{permType}, #{grantType}, #{grantId})
+    </insert>
+
+    <select id="selectByFolder" resultType="DocFolderPerm">
+        SELECT id, folder_id, perm_type, grant_type, grant_id
+        FROM doc_folder_perm
+        WHERE folder_id = #{folderId}
+        ORDER BY id ASC
+    </select>
+
+    <delete id="deleteByFolder">
+        DELETE FROM doc_folder_perm WHERE folder_id = #{folderId}
+    </delete>
+
+    <delete id="delete">
+        DELETE FROM doc_folder_perm
+        WHERE folder_id = #{folderId}
+        AND perm_type = #{permType}
+        AND grant_type = #{grantType}
+        AND grant_id = #{grantId}
+    </delete>
+
+</mapper>

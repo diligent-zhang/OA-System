@@ -5,7 +5,7 @@ import { auth } from '@/stores/auth'
 
 const service = axios.create({
   baseURL: 'http://localhost:8080/api',
-  timeout: 15000
+  timeout: 30000
 })
 
 /* 请求拦截：自动携带 Token */
@@ -19,12 +19,17 @@ service.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-/* 响应拦截：统一结果处理 / Token 续期 / 401 跳登录 */
+/* 响应拦截：统一结果处理 / Token 续期 / 401 跳登录 / blob 下载透传 */
 service.interceptors.response.use(
   (response) => {
     const renew = response.headers['x-renew-token']
     if (renew) {
       auth.setToken(renew)
+    }
+
+    // 文件流下载：透传原始二进制，由调用方生成下载链接
+    if (response.config.responseType === 'blob' || response.config.responseType === 'arraybuffer') {
+      return response.data
     }
 
     const res = response.data

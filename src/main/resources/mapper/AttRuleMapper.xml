@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianyu.oasystem.mapper.AttRuleMapper">
+
+    <sql id="columns">
+        rule_id, rule_name, work_start, work_end, latitude, longitude,
+        radius_m, location_check, rest_days, enabled, create_time
+    </sql>
+
+    <select id="selectById" resultType="AttRule">
+        SELECT <include refid="columns"/> FROM att_rule WHERE rule_id = #{ruleId}
+    </select>
+
+    <select id="selectAll" resultType="AttRule">
+        SELECT <include refid="columns"/> FROM att_rule ORDER BY rule_id ASC
+    </select>
+
+    <select id="selectActive" resultType="AttRule">
+        SELECT <include refid="columns"/> FROM att_rule WHERE enabled = 1
+        ORDER BY rule_id DESC LIMIT 1
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="ruleId">
+        INSERT INTO att_rule (rule_name, work_start, work_end, latitude, longitude,
+                              radius_m, location_check, rest_days, enabled)
+        VALUES (#{ruleName}, #{workStart}, #{workEnd}, #{latitude}, #{longitude},
+                #{radiusM}, #{locationCheck}, #{restDays}, 1)
+    </insert>
+
+    <update id="update">
+        UPDATE att_rule
+        <set>
+            <if test="ruleName != null">rule_name = #{ruleName},</if>
+            <if test="workStart != null">work_start = #{workStart},</if>
+            <if test="workEnd != null">work_end = #{workEnd},</if>
+            <if test="latitude != null">latitude = #{latitude},</if>
+            <if test="longitude != null">longitude = #{longitude},</if>
+            <if test="radiusM != null">radius_m = #{radiusM},</if>
+            <if test="locationCheck != null">location_check = #{locationCheck},</if>
+            <if test="restDays != null">rest_days = #{restDays},</if>
+            <if test="enabled != null">enabled = #{enabled},</if>
+        </set>
+        WHERE rule_id = #{ruleId}
+    </update>
+
+    <update id="updateEnabled">
+        UPDATE att_rule SET enabled = #{enabled} WHERE rule_id = #{ruleId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM att_rule WHERE rule_id = #{ruleId}
+    </delete>
+
+</mapper>

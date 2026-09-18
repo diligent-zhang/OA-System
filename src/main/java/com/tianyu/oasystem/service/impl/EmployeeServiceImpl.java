@@ -71,6 +71,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setPhone(dto.getPhone());
         employee.setEmail(dto.getEmail());
         employee.setDeptId(dto.getDeptId());
+        employee.setPosition(dto.getPosition() == null ? "" : dto.getPosition());
         employee.setHireDate(dto.getHireDate());
         employee.setStatus(dto.getStatus());
         employeeMapper.insert(employee);
@@ -94,6 +95,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setPhone(dto.getPhone());
         employee.setEmail(dto.getEmail());
         employee.setDeptId(dto.getDeptId());
+        employee.setPosition(dto.getPosition());
         employee.setHireDate(dto.getHireDate());
         employee.setStatus(dto.getStatus());
         employeeMapper.update(employee);

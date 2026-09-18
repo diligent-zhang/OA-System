@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianyu.oasystem.mapper.FlowInstanceMapper">
+
+    <sql id="columns">
+        instance_id, def_id, form_id, def_name, category, title,
+        applicant_user_id, applicant_emp_id, applicant_name, form_data_json,
+        status, current_node_id, create_time, finish_time, deleted
+    </sql>
+
+    <sql id="listColumns">
+        i.instance_id, i.def_id, i.def_name, i.category, i.title,
+        i.applicant_name, i.status, i.create_time, i.finish_time
+    </sql>
+
+    <select id="selectById" resultType="FlowInstance">
+        SELECT <include refid="columns"/>
+        FROM flow_instance
+        WHERE instance_id = #{instanceId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="instanceId">
+        INSERT INTO flow_instance (def_id, form_id, def_name, category, title,
+                                   applicant_user_id, applicant_emp_id, applicant_name,
+                                   form_data_json, status, current_node_id)
+        VALUES (#{defId}, #{formId}, #{defName}, #{category}, #{title},
+                #{applicantUserId}, #{applicantEmpId}, #{applicantName},
+                #{formDataJson}, #{status}, #{currentNodeId})
+    </insert>
+
+    <update id="updateStatus">
+        UPDATE flow_instance SET status = #{status}, finish_time = #{finishTime}
+        WHERE instance_id = #{instanceId}
+    </update>
+
+    <update id="updateCurrentNode">
+        UPDATE flow_instance SET current_node_id = #{nodeId}
+        WHERE instance_id = #{instanceId}
+    </update>
+
+    <update id="markDeleted">
+        UPDATE flow_instance SET deleted = 1 WHERE instance_id = #{instanceId}
+    </update>
+
+    <select id="selectPageByApplicant" resultType="com.tianyu.oasystem.vo.FlowListVO">
+        SELECT <include refid="listColumns"/>
+        FROM flow_instance i
+        WHERE i.deleted = 0 AND i.applicant_user_id = #{applicantUserId}
+        <if test="status != null and status != ''">AND i.status = #{status}</if>
+        <if test="keyword != null and keyword != ''">AND i.title LIKE CONCAT('%', #{keyword}, '%')</if>
+        ORDER BY i.instance_id DESC
+    </select>
+
+    <select id="selectArchivePage" resultType="com.tianyu.oasystem.vo.FlowListVO">
+        SELECT <include refid="listColumns"/>
+        FROM flow_instance i
+        WHERE i.deleted = 0
+        <if test="status != null and status != ''">AND i.status = #{status}</if>
+        <if test="category != null and category != ''">AND i.category = #{category}</if>
+        <if test="keyword != null and keyword != ''">AND (i.title LIKE CONCAT('%', #{keyword}, '%')
+            OR i.applicant_name LIKE CONCAT('%', #{keyword}, '%'))</if>
+        ORDER BY i.instance_id DESC
+    </select>
+
+    <select id="countProcessingByApplicant" resultType="int">
+        SELECT COUNT(*)
+        FROM flow_instance
+        WHERE deleted = 0 AND applicant_user_id = #{applicantUserId} AND status = 'APPROVING'
+    </select>
+
+    <select id="countByDefId" resultType="int">
+        SELECT COUNT(*) FROM flow_instance WHERE def_id = #{defId} AND deleted = 0
+    </select>
+
+</mapper>

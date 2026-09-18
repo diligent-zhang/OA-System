@@ -5,7 +5,8 @@
 
     <sql id="voColumns">
         n.notice_id, n.title, n.content, n.type, n.top_flag, n.status,
-        n.publisher_id, n.publish_time, u.username AS publisher_name
+        n.publisher_id, n.publish_time, u.username AS publisher_name,
+        (SELECT COUNT(*) FROM sys_notice_attachment na WHERE na.notice_id = n.notice_id) AS attach_count
     </sql>
 
     <sql id="queryConditions">
@@ -97,6 +98,36 @@
 
     <delete id="deleteById">
         DELETE FROM sys_notice WHERE notice_id = #{noticeId}
+    </delete>
+
+    <insert id="insertRead">
+        INSERT IGNORE INTO sys_notice_read (notice_id, user_id)
+        VALUES (#{noticeId}, #{userId})
+    </insert>
+
+    <select id="countRead" resultType="int">
+        SELECT COUNT(*) FROM sys_notice_read WHERE notice_id = #{noticeId}
+    </select>
+
+    <select id="selectReadUsernames" resultType="string">
+        SELECT u.username
+        FROM sys_notice_read nr
+        LEFT JOIN sys_user u ON u.user_id = nr.user_id
+        WHERE nr.notice_id = #{noticeId}
+        ORDER BY nr.read_time ASC
+    </select>
+
+    <select id="selectReadNoticeIds" resultType="long">
+        SELECT notice_id FROM sys_notice_read
+        WHERE user_id = #{userId}
+        AND notice_id IN
+        <foreach collection="noticeIds" item="nid" open="(" separator="," close=")">
+            #{nid}
+        </foreach>
+    </select>
+
+    <delete id="deleteReads">
+        DELETE FROM sys_notice_read WHERE notice_id = #{noticeId}
     </delete>
 
 </mapper>

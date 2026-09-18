@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianyu.oasystem.mapper.FlowNodeMapper">
+
+    <sql id="columns">
+        node_id, def_id, node_name, node_type, sort_no, approver_type, approver_ids,
+        branch_field, branch_op, branch_value, branch_to_node_id, next_node_id
+    </sql>
+
+    <select id="selectByDefId" resultType="FlowNode">
+        SELECT <include refid="columns"/>
+        FROM flow_node
+        WHERE def_id = #{defId}
+        ORDER BY sort_no ASC, node_id ASC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="nodeId">
+        INSERT INTO flow_node (def_id, node_name, node_type, sort_no, approver_type, approver_ids,
+                               branch_field, branch_op, branch_value, branch_to_node_id, next_node_id)
+        VALUES (#{defId}, #{nodeName}, #{nodeType}, #{sortNo}, #{approverType}, #{approverIds},
+                #{branchField}, #{branchOp}, #{branchValue}, #{branchToNodeId}, #{nextNodeId})
+    </insert>
+
+    <update id="update">
+        UPDATE flow_node
+        SET branch_to_node_id = #{branchToNodeId}, next_node_id = #{nextNodeId}
+        WHERE node_id = #{nodeId}
+    </update>
+
+    <delete id="deleteByDefId">
+        DELETE FROM flow_node WHERE def_id = #{defId}
+    </delete>
+
+</mapper>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianyu.oasystem.mapper.SysConfigMapper">
+
+    <sql id="baseColumns">
+        config_key, config_value, description
+    </sql>
+
+    <select id="selectByKey" resultType="SysConfig">
+        SELECT <include refid="baseColumns"/>
+        FROM sys_config
+        WHERE config_key = #{configKey}
+    </select>
+
+    <select id="selectAll" resultType="SysConfig">
+        SELECT <include refid="baseColumns"/>
+        FROM sys_config
+        ORDER BY config_key
+    </select>
+
+    <update id="updateValue">
+        UPDATE sys_config SET config_value = #{configValue}
+        WHERE config_key = #{configKey}
+    </update>
+
+</mapper>

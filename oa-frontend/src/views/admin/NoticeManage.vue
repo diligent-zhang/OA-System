@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { noticeAdminPage, noticeAdd, noticeUpdate, noticeDelete, noticeToggle } from '@/api'
+import { noticeAdminPage, noticeAdd, noticeUpdate, noticeDelete, noticeToggle, noticeReadStats, fileUpload } from '@/api'
 
 const TYPE_LABEL = { 1: '通知', 2: '公告', 3: '制度' }
 const TYPE_TAG = { 1: 'primary', 2: 'success', 3: 'warning' }
@@ -34,36 +34,71 @@ onMounted(load)
 const dialog = reactive({ visible: false, isEdit: false, id: null })
 const formRef = ref()
 const form = reactive({ title: '', content: '', type: 1, topFlag: 0, publish: true })
+const attachments = ref([]) // 已选附件 {fileId, name}
+
+async function pickAttachment() {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.onchange = async () => {
+    const file = input.files[0]
+    if (!file) return
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await fileUpload(fd, 'notice', '0')
+    attachments.value.push({ fileId: res.data.fileId, name: res.data.originalName || file.name })
+    ElMessage.success('附件已上传，保存时自动绑定')
+  }
+  input.click()
+}
+
+function removeAttachment(idx) {
+  attachments.value.splice(idx, 1)
+}
 const rules = {
   title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
   content: [{ required: true, message: '请输入正文', trigger: 'blur' }],
   type: [{ required: true, message: '请选择公告类型', trigger: 'change' }]
 }
 
+async function submit() {
+  await formRef.value.validate()
+  const payload = {
+    ...form,
+    attachmentFileIds: attachments.value.map((a) => a.fileId)
+  }
+  if (dialog.isEdit) {
+    await noticeUpdate(dialog.id, { ...payload, publish: undefined })
+    ElMessage.success('公告已更新')
+  } else {
+    await noticeAdd(payload)
+    ElMessage.success(form.publish ? '公告发布成功' : '已保存为下架状态')
+  }
+  dialog.visible = false
+  load()
+}
+
+/* ===== 已读统计 ===== */
+const stats = reactive({ visible: false, data: {} })
+
+async function openReadStats(row) {
+  const res = await noticeReadStats(row.noticeId)
+  stats.data = res.data || {}
+  stats.visible = true
+}
+
 function openAdd() {
   Object.assign(form, { title: '', content: '', type: 1, topFlag: 0, publish: true })
+  attachments.value = []
   dialog.isEdit = false
   dialog.visible = true
 }
 
 function openEdit(row) {
   Object.assign(form, { title: row.title, content: row.content, type: row.type, topFlag: row.topFlag, publish: row.status === 1 })
+  attachments.value = []
   dialog.isEdit = true
   dialog.id = row.noticeId
   dialog.visible = true
-}
-
-async function submit() {
-  await formRef.value.validate()
-  if (dialog.isEdit) {
-    await noticeUpdate(dialog.id, { ...form, publish: undefined })
-    ElMessage.success('公告已更新')
-  } else {
-    await noticeAdd(form)
-    ElMessage.success(form.publish ? '公告发布成功' : '已保存为下架状态')
-  }
-  dialog.visible = false
-  load()
 }
 
 /* ===== 预览 ===== */
@@ -138,16 +173,23 @@ async function handleDelete(row) {
           </template>
         </el-table-column>
         <el-table-column prop="publisherName" label="发布人" width="110" />
+        <el-table-column label="附件" width="80" align="center">
+          <template #default="{ row }">
+            <span v-if="row.attachCount">📎 {{ row.attachCount }}</span>
+            <span v-else style="color: var(--oa-ink-light)">—</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="publishTime" label="发布时间" width="170" sortable />
         <el-table-column label="状态" width="90" align="center">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'info'" size="small">{{ row.status === 1 ? '已发布' : '已下架' }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="220" fixed="right">
+        <el-table-column label="操作" width="260" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="openPreview(row)">预览</el-button>
             <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
+            <el-button link type="primary" @click="openReadStats(row)">已读统计</el-button>
             <el-button link :type="row.status === 1 ? 'warning' : 'success'" @click="handleToggle(row)">
               {{ row.status === 1 ? '下架' : '发布' }}
             </el-button>
@@ -184,6 +226,16 @@ async function handleDelete(row) {
         <el-form-item label="置顶">
           <el-switch v-model="form.topFlag" :active-value="1" :inactive-value="0" />
         </el-form-item>
+        <el-form-item label="附件">
+          <div class="att-list">
+            <span v-for="(a, i) in attachments" :key="a.fileId" class="att-chip">
+              📎 {{ a.name }}
+              <el-icon class="att-x" @click="removeAttachment(i)"><Close /></el-icon>
+            </span>
+          </div>
+          <el-button size="small" @click="pickAttachment">+ 上传附件</el-button>
+          <span class="publish-tip">附件随公告一起发布，员工可下载</span>
+        </el-form-item>
         <el-form-item v-if="!dialog.isEdit" label="立即发布">
           <el-switch v-model="form.publish" />
           <span class="publish-tip">{{ form.publish ? '保存后员工即可查看' : '保存为下架状态，稍后手动发布' }}</span>
@@ -204,6 +256,29 @@ async function handleDelete(row) {
       </div>
       <el-divider />
       <pre class="notice-body">{{ preview.data.content }}</pre>
+    </el-dialog>
+
+    <!-- 已读统计 -->
+    <el-dialog v-model="stats.visible" title="公告已读统计" width="640px">
+      <div class="stats-cards">
+        <div class="stat-card"><div class="num oa-mono">{{ stats.data.totalUsers }}</div><div class="lbl">应读人数</div></div>
+        <div class="stat-card hit"><div class="num oa-mono">{{ stats.data.readCount }}</div><div class="lbl">已读人数</div></div>
+        <div class="stat-card miss"><div class="num oa-mono">{{ stats.data.notReadCount }}</div><div class="lbl">未读人数</div></div>
+      </div>
+      <el-row :gutter="16">
+        <el-col :span="12">
+          <h4 class="stats-title">已读名单（{{ (stats.data.readUsers || []).length }}）</h4>
+          <div class="name-list">
+            <el-tag v-for="u in stats.data.readUsers || []" :key="u" size="small" effect="plain">{{ u }}</el-tag>
+          </div>
+        </el-col>
+        <el-col :span="12">
+          <h4 class="stats-title">未读名单（{{ (stats.data.notReadUsers || []).length }}）</h4>
+          <div class="name-list">
+            <el-tag v-for="u in stats.data.notReadUsers || []" :key="u" size="small" type="info" effect="plain">{{ u }}</el-tag>
+          </div>
+        </el-col>
+      </el-row>
     </el-dialog>
   </div>
 </template>
@@ -242,4 +317,30 @@ async function handleDelete(row) {
   color: var(--oa-ink-light);
   font-size: 13px;
 }
+.att-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.att-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--el-color-primary-light-9);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  color: var(--oa-primary);
+}
+.att-x { cursor: pointer; }
+.stats-cards { display: flex; gap: 16px; margin-bottom: 18px; }
+.stat-card {
+  flex: 1;
+  border: 1px solid var(--oa-line);
+  border-radius: 6px;
+  text-align: center;
+  padding: 14px;
+}
+.stat-card .num { font-size: 28px; color: var(--oa-navy); font-weight: 600; }
+.stat-card.hit .num { color: #047857; }
+.stat-card.miss .num { color: #dc2626; }
+.stat-card .lbl { font-size: 12px; color: var(--oa-ink-light); margin-top: 4px; }
+.stats-title { margin: 0 0 10px; font-size: 13px; color: var(--oa-navy); }
+.name-list { display: flex; flex-wrap: wrap; gap: 6px; min-height: 40px; }
 </style>

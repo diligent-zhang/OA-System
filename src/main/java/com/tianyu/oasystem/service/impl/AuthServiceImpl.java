@@ -10,6 +10,7 @@ import com.tianyu.oasystem.mapper.EmpEmployeeMapper;
 import com.tianyu.oasystem.mapper.SysDeptMapper;
 import com.tianyu.oasystem.mapper.SysUserMapper;
 import com.tianyu.oasystem.service.AuthService;
+import com.tianyu.oasystem.service.OpLogService;
 import com.tianyu.oasystem.util.GenerateUtil;
 import com.tianyu.oasystem.util.JwtUtil;
 import com.tianyu.oasystem.util.UserPrincipal;
@@ -30,6 +31,7 @@ public class AuthServiceImpl implements AuthService {
     private final SysDeptMapper deptMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final OpLogService opLogService;
 
     @Override
     public LoginVO login(LoginDTO dto) {
@@ -42,16 +44,19 @@ public class AuthServiceImpl implements AuthService {
         }
 
         String name = "系统管理员";
+        Long deptId = null;
         if (user.getEmpId() != null) {
             EmpEmployee emp = employeeMapper.selectById(user.getEmpId());
             if (emp != null) {
                 name = emp.getName();
+                deptId = emp.getDeptId();
             }
         }
 
         UserPrincipal principal = new UserPrincipal(
-                user.getUserId(), user.getUsername(), user.getRole(), user.getEmpId());
+                user.getUserId(), user.getUsername(), user.getRole(), user.getEmpId(), deptId);
         String token = jwtUtil.createToken(principal);
+        opLogService.record("LOGIN", "AUTH", String.valueOf(user.getUserId()), "用户登录成功");
         return new LoginVO(token, user.getUserId(), user.getUsername(), user.getRole(), user.getEmpId(), name);
     }
 
@@ -70,6 +75,11 @@ public class AuthServiceImpl implements AuthService {
         employee.setPhone(dto.getPhone());
         employee.setEmail(dto.getEmail());
         employee.setDeptId(dto.getDeptId());
+        if (dto.getPosition() != null && !dto.getPosition().isBlank()) {
+            employee.setPosition(dto.getPosition());
+        } else {
+            employee.setPosition("");
+        }
         employee.setHireDate(dto.getHireDate() == null ? LocalDate.now() : dto.getHireDate());
         employee.setStatus(1);
         employeeMapper.insert(employee);
@@ -81,6 +91,7 @@ public class AuthServiceImpl implements AuthService {
         user.setEmpId(employee.getEmpId());
         user.setStatus(1);
         userMapper.insert(user);
+        opLogService.record("AUTH", "REGISTER", String.valueOf(user.getUserId()), "新用户注册");
     }
 
     @Override

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianyu.oasystem.mapper.FlowDefMapper">
+
+    <sql id="columns">
+        def_id, form_id, def_name, category, built_in, status, create_time
+    </sql>
+
+    <select id="selectById" resultType="FlowDef">
+        SELECT <include refid="columns"/> FROM flow_def WHERE def_id = #{defId}
+    </select>
+
+    <select id="selectAll" resultType="FlowDef">
+        SELECT <include refid="columns"/> FROM flow_def ORDER BY built_in DESC, def_id ASC
+    </select>
+
+    <select id="selectEnabled" resultType="FlowDef">
+        SELECT <include refid="columns"/> FROM flow_def WHERE status = 1 ORDER BY built_in DESC, def_id ASC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="defId">
+        INSERT INTO flow_def (form_id, def_name, category, built_in, status)
+        VALUES (#{formId}, #{defName}, #{category}, 0, 1)
+    </insert>
+
+    <update id="update">
+        UPDATE flow_def SET form_id = #{formId}, def_name = #{defName}, category = #{category}
+        WHERE def_id = #{defId}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE flow_def SET status = #{status} WHERE def_id = #{defId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM flow_def WHERE def_id = #{defId}
+    </delete>
+
+</mapper>

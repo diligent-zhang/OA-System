@@ -34,6 +34,7 @@ public class JwtUtil {
                 .claim("username", p.getUsername())
                 .claim("role", p.getRole())
                 .claim("empId", p.getEmpId())
+                .claim("deptId", p.getDeptId())
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expireMinutes * 60_000))
                 .signWith(key())
@@ -48,11 +49,13 @@ public class JwtUtil {
                 .parseSignedClaims(token)
                 .getPayload();
         Number empId = claims.get("empId", Number.class);
+        Number deptId = claims.get("deptId", Number.class);
         return new UserPrincipal(
                 Long.valueOf(claims.getSubject()),
                 claims.get("username", String.class),
                 claims.get("role", String.class),
-                empId == null ? null : empId.longValue());
+                empId == null ? null : empId.longValue(),
+                deptId == null ? null : deptId.longValue());
     }
 
     /** 是否临近过期需要续期 */

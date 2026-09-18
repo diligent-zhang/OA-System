@@ -16,6 +16,7 @@ public class EmpEmployee {
     private String phone;
     private String email;
     private Long deptId;
+    private String position;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate hireDate;
