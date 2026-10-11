@@ -476,9 +476,9 @@ INSERT INTO flow_form (form_id, form_name, form_key, remark, built_in, status, c
 -- 请假表单字段
 INSERT INTO flow_form_field (form_id, field_key, label, field_type, options, required, sort_no) VALUES
 (1, 'leave_type', '请假类型', 'SELECT', '["事假","病假","年假","调休"]', 1, 1),
-(1, 'begin_date', '开始日期', 'DATE', NULL, 1, 2),
-(1, 'end_date',   '结束日期', 'DATE', NULL, 1, 3),
-(1, 'days',       '请假天数', 'NUMBER', NULL, 1, 4),
+(1, 'begin_date', '开始时间', 'DATETIME', NULL, 1, 2),
+(1, 'end_date',   '结束时间', 'DATETIME', NULL, 1, 3),
+(1, 'days',       '请假时长(天)', 'DURATION', '{"from":"begin_date","to":"end_date"}', 1, 4),
 (1, 'reason',     '请假事由', 'TEXT', NULL, 1, 5),
 (1, 'attachment', '证明材料', 'ATTACHMENT', NULL, 0, 6);
 
@@ -493,9 +493,9 @@ INSERT INTO flow_form_field (form_id, field_key, label, field_type, options, req
 -- 出差表单字段
 INSERT INTO flow_form_field (form_id, field_key, label, field_type, options, required, sort_no) VALUES
 (3, 'city',       '出差城市', 'TEXT', NULL, 1, 1),
-(3, 'begin_date', '开始日期', 'DATE', NULL, 1, 2),
-(3, 'end_date',   '结束日期', 'DATE', NULL, 1, 3),
-(3, 'days',       '出差天数', 'NUMBER', NULL, 1, 4),
+(3, 'begin_date', '开始时间', 'DATETIME', NULL, 1, 2),
+(3, 'end_date',   '结束时间', 'DATETIME', NULL, 1, 3),
+(3, 'days',       '出差时长(天)', 'DURATION', '{"from":"begin_date","to":"end_date"}', 1, 4),
 (3, 'reason',     '出差事由', 'TEXT', NULL, 1, 5),
 (3, 'attachment', '相关附件', 'ATTACHMENT', NULL, 0, 6);
 

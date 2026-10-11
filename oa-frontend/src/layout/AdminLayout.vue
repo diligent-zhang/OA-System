@@ -3,12 +3,14 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { auth } from '@/stores/auth'
-import { logout, messageUnreadCount } from '@/api'
+import { logout } from '@/api'
+import { messageState } from '@/stores/message'
+import { connectChat, disconnectChat } from '@/stores/chat'
+import UserAvatar from '@/components/UserAvatar.vue'
 
 const route = useRoute()
 const router = useRouter()
 const collapsed = ref(false)
-const unread = ref(0)
 let timer = null
 
 /* 按角色过滤菜单 */
@@ -115,6 +117,7 @@ const menuGroups = computed(() => {
   groups.push({
     title: '办公服务',
     items: [
+      { path: '/chat', title: '即时通讯', icon: 'ChatDotRound' },
       { path: '/doc', title: '文档中心', icon: 'FolderOpened' },
       { path: '/employee/notices', title: '公告中心', icon: 'Bell' },
       { path: '/messages', title: '消息中心', icon: 'Message' }
@@ -138,17 +141,13 @@ const activeMenu = computed(() => {
   return route.path
 })
 
-async function refreshUnread() {
-  try {
-    const res = await messageUnreadCount()
-    unread.value = res.data || 0
-  } catch (_) {
-    /* 静默失败 */
-  }
+function refreshUnread() {
+  messageState.refresh()
 }
 
 onMounted(() => {
   refreshUnread()
+  connectChat()
   if (!timer) {
     timer = setInterval(refreshUnread, 60000)
   }
@@ -169,6 +168,7 @@ async function handleCommand(cmd) {
       type: 'warning'
     })
     logout().catch(() => {})
+    disconnectChat()
     auth.clear()
     ElMessage.success('已退出登录')
     router.push('/login')
@@ -219,17 +219,20 @@ async function handleCommand(cmd) {
           <el-tag :type="auth.role === 'ADMIN' ? 'primary' : auth.role === 'DEPT_ADMIN' ? 'warning' : 'success'" effect="plain" size="small">
             {{ auth.role === 'ADMIN' ? '超管' : auth.role === 'DEPT_ADMIN' ? '部门管理员' : '员工' }}
           </el-tag>
-          <el-badge :value="unread" :max="99" :hidden="unread === 0" class="msg-badge">
+          <el-badge :value="messageState.unread" :max="99" :hidden="messageState.unread === 0" class="msg-badge">
             <el-icon class="top-icon" role="button" tabindex="0" @click="router.push('/messages')">
               <Message />
             </el-icon>
           </el-badge>
           <el-dropdown @command="handleCommand">
             <div class="user-chip">
-              <el-avatar :size="30" class="avatar">
-                <img v-if="auth.user?.avatarUrl" :src="`http://localhost:8080/api/file/avatar/${auth.user?.userId}`" alt="avatar" />
-                <span v-else>{{ (auth.user?.name || 'U').charAt(0) }}</span>
-              </el-avatar>
+              <UserAvatar
+                :user-id="auth.user?.userId"
+                :name="auth.user?.name || auth.user?.username"
+                :has-avatar="!!auth.user?.avatarUrl"
+                :size="30"
+                class="avatar"
+              />
               <span class="uname">{{ auth.user?.name || auth.user?.username }}</span>
               <el-icon><ArrowDown /></el-icon>
             </div>

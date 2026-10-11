@@ -66,7 +66,10 @@
 
     <select id="selectActiveList" resultType="com.tianyu.oasystem.vo.EmployeeVO">
         SELECT e.emp_id, e.emp_no, e.name, e.gender, e.phone, e.email,
-               e.dept_id, d.dept_name, e.position
+               e.dept_id, d.dept_name, e.position,
+               (SELECT u.user_id FROM sys_user u
+                 WHERE u.emp_id = e.emp_id AND u.status = 1
+                 ORDER BY u.user_id LIMIT 1) AS user_id
         FROM emp_employee e
         LEFT JOIN sys_dept d ON d.dept_id = e.dept_id
         WHERE e.status = 1

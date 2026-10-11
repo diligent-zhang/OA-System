@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianyu.oasystem.mapper.ChatConversationMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="conversationId">
+        INSERT INTO chat_conversation (type, group_name, single_key, create_by, create_time)
+        VALUES (#{type}, #{groupName}, #{singleKey}, #{createBy}, NOW())
+    </insert>
+
+    <select id="selectById" resultType="com.tianyu.oasystem.entity.ChatConversation">
+        SELECT conversation_id, type, group_name, single_key, create_by,
+               last_msg_id, last_time, create_time
+        FROM chat_conversation
+        WHERE conversation_id = #{conversationId}
+    </select>
+
+    <select id="selectBySingleKey" resultType="com.tianyu.oasystem.entity.ChatConversation">
+        SELECT conversation_id, type, group_name, single_key, create_by,
+               last_msg_id, last_time, create_time
+        FROM chat_conversation
+        WHERE single_key = #{singleKey}
+    </select>
+
+    <update id="updateLast">
+        UPDATE chat_conversation
+        SET last_msg_id = #{lastMsgId}, last_time = #{lastTime}
+        WHERE conversation_id = #{conversationId}
+    </update>
+
+    <select id="selectByUser" resultType="com.tianyu.oasystem.vo.ChatConversationVO">
+        SELECT c.conversation_id,
+               c.type,
+               c.group_name,
+               c.last_time,
+               (SELECT msg.content FROM chat_message msg
+                 WHERE msg.conversation_id = c.conversation_id
+                 ORDER BY msg.msg_id DESC LIMIT 1) AS last_content,
+               (SELECT COUNT(*) FROM chat_message msg
+                 WHERE msg.conversation_id = c.conversation_id
+                   AND msg.msg_id &gt; m.last_read_msg_id
+                   AND msg.sender_user_id &lt;&gt; #{userId}) AS unread_count
+        FROM chat_conversation c
+        JOIN chat_conversation_member m
+          ON m.conversation_id = c.conversation_id AND m.user_id = #{userId}
+        ORDER BY COALESCE(c.last_time, c.create_time) DESC
+    </select>
+
+</mapper>

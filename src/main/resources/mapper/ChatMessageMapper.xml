@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tianyu.oasystem.mapper.ChatMessageMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="msgId">
+        INSERT INTO chat_message (conversation_id, sender_user_id, msg_type, content, create_time)
+        VALUES (#{conversationId}, #{senderUserId}, #{msgType}, #{content}, NOW())
+    </insert>
+
+    <select id="selectPage" resultType="com.tianyu.oasystem.vo.ChatMessageVO">
+        SELECT msg_id, conversation_id, sender_user_id, msg_type, content, create_time
+        FROM chat_message
+        WHERE conversation_id = #{conversationId}
+        ORDER BY msg_id DESC
+    </select>
+
+    <select id="maxMsgId" resultType="java.lang.Long">
+        SELECT MAX(msg_id) FROM chat_message WHERE conversation_id = #{conversationId}
+    </select>
+
+</mapper>

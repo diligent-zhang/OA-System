@@ -37,8 +37,16 @@ fi
 # 说明: 项目路径含中文，spring-boot:run fork 出的 JVM 以命令行参数传绝对 classpath 会被
 # GBK 截断（ClassNotFound）。改用已验证可靠的「mvnw package + java -jar」。
 JAR="target/OA-System-0.0.1-SNAPSHOT.jar"
+NEED_BUILD=0
 if [ ! -f "$JAR" ]; then
     echo "[*] 未找到打包产物，先执行 Maven 打包 ..."
+    NEED_BUILD=1
+elif ! unzip -p "$JAR" META-INF/MANIFEST.MF 2>/dev/null | grep -q "Main-Class"; then
+    # 瘦 jar（repackage 未成功）无 Main-Class，java -jar 会报 "no main manifest attribute"
+    echo "[*] 检测到 jar 不可执行（缺 Spring Boot 启动清单），重新打包 ..."
+    NEED_BUILD=1
+fi
+if [ "$NEED_BUILD" -eq 1 ]; then
     if [ -n "$MSYSTEM" ]; then
         # MSYS 拉起的 cmd 无法解析裸命令名，须加 .\ 前缀
         cmd //c ".\\mvnw.cmd -DskipTests package" || { echo "[ERROR] 后端打包失败"; exit 1; }

@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { messagePage, messageRead, messageReadAll } from '@/api'
+import { messageState } from '@/stores/message'
 
 const router = useRouter()
 const loading = ref(false)
@@ -28,6 +29,7 @@ async function read(row) {
   if (!row.isRead) {
     await messageRead(row.msgId)
     row.isRead = 1
+    messageState.refresh()
   }
   if (row.bizLink) {
     router.push(row.bizLink)
@@ -36,11 +38,15 @@ async function read(row) {
 
 async function readAll() {
   await messageReadAll()
+  messageState.setUnread(0)
   ElMessage.success('已全部标为已读')
   load()
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  messageState.refresh()
+})
 </script>
 
 <template>

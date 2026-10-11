@@ -1,11 +1,52 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { contactsTree, contactsQuery } from '@/api'
+import { useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { contactsTree, contactsQuery, chatOpen } from '@/api'
 
+const router = useRouter()
 const loading = ref(false)
 const tree = ref([])
 const book = ref([])
 const keyword = ref('')
+const selectedRows = ref([])
+
+function onSelectionChange(rows) {
+  selectedRows.value = rows
+}
+
+/* 发起会话：1 人单聊，多人群聊 */
+async function startChat(userIds, groupName) {
+  const ids = (userIds || []).filter((id) => id != null)
+  if (!ids.length) {
+    ElMessage.warning('该成员未关联登录账号，无法发起会话')
+    return
+  }
+  const res = await chatOpen({ type: ids.length > 1 ? 'GROUP' : 'SINGLE', memberUserIds: ids, groupName })
+  router.push(`/chat/${res.data}`)
+}
+
+function chatWith(row) {
+  startChat([row.userId])
+}
+
+async function chatSelected() {
+  const ids = selectedRows.value.map((r) => r.userId).filter((id) => id != null)
+  if (!ids.length) {
+    ElMessage.warning('请先勾选成员')
+    return
+  }
+  if (ids.length === 1) {
+    startChat(ids)
+    return
+  }
+  try {
+    const { value } = await ElMessageBox.prompt('请输入群聊名称', '发起群聊', { inputValue: '工作群聊' })
+    startChat(ids, value)
+  } catch (_) {
+    /* 取消 */
+  }
+}
 
 async function load() {
   loading.value = true
@@ -69,9 +110,24 @@ onMounted(load)
               <template #suffix><el-icon @click="search"><Search /></el-icon></template>
             </el-input>
             <el-button style="margin-left: 10px" @click="search">搜索</el-button>
+            <el-button type="primary" :disabled="!selectedRows.length" style="margin-left: 10px" @click="chatSelected">
+              发起会话{{ selectedRows.length > 1 ? '（群聊）' : '' }}
+            </el-button>
           </div>
-          <el-table v-loading="loading" :data="book" border stripe>
-            <el-table-column prop="name" label="姓名" width="100" />
+          <el-table v-loading="loading" :data="book" border stripe @selection-change="onSelectionChange">
+            <el-table-column type="selection" width="46" :selectable="(row) => !!row.userId" />
+            <el-table-column prop="name" label="姓名" width="100">
+              <template #default="{ row }">
+                <span
+                  class="name-link"
+                  :class="{ 'name-link-off': !row.userId }"
+                  role="button"
+                  tabindex="0"
+                  @click="row.userId && chatWith(row)"
+                  @keyup.enter="row.userId && chatWith(row)"
+                >{{ row.name }}</span>
+              </template>
+            </el-table-column>
             <el-table-column prop="position" label="岗位" width="140">
               <template #default="{ row }">{{ row.position || '—' }}</template>
             </el-table-column>
@@ -85,6 +141,11 @@ onMounted(load)
               <template #default="{ row }"><span class="oa-mono">{{ row.phone }}</span></template>
             </el-table-column>
             <el-table-column prop="email" label="邮箱" min-width="170" />
+            <el-table-column label="操作" width="96" fixed="right">
+              <template #default="{ row }">
+                <el-button link type="primary" :disabled="!row.userId" @click="chatWith(row)">发消息</el-button>
+              </template>
+            </el-table-column>
           </el-table>
         </div>
       </el-col>
@@ -96,4 +157,8 @@ onMounted(load)
 .card-title { margin: 0 0 12px; font-size: 14px; color: var(--oa-navy); }
 .dept-node { display: flex; align-items: center; gap: 6px; }
 .dept-count { background: var(--el-color-primary-light-9); color: var(--oa-primary); border-radius: 8px; padding: 0 7px; font-size: 12px; }
+.name-link { color: var(--oa-primary); cursor: pointer; font-weight: 500; }
+.name-link:hover { text-decoration: underline; }
+.name-link-off { color: var(--oa-ink-light); cursor: default; }
+.name-link-off:hover { text-decoration: none; }
 </style>

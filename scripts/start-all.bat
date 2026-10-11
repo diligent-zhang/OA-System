@@ -71,12 +71,25 @@ if not exist "oa-frontend\node_modules" (
     )
 )
 
-REM ---------- 4. 后端打包（jar 不存在时） + 启动 ----------
-if not exist "target\OA-System-0.0.1-SNAPSHOT.jar" (
-    echo   [*] 后端未打包，先执行 mvnw package ...
+REM ---------- 4. 后端打包（jar 缺失或不可执行时） + 启动 ----------
+set "JAR=target\OA-System-0.0.1-SNAPSHOT.jar"
+set "NEED_BUILD="
+if not exist "%JAR%" (
+    set "NEED_BUILD=1"
+) else (
+    REM 瘦 jar（repackage 未成功）不含 BOOT-INF/，java -jar 会报"没有主清单属性"
+    jar tf "%JAR%" 2>nul | findstr /B /C:"BOOT-INF/" >nul 2>&1
+    if errorlevel 1 set "NEED_BUILD=1"
+)
+if defined NEED_BUILD (
+    if exist "%JAR%" (
+        echo   [*] 检测到 jar 不可执行（缺 Spring Boot 启动清单），重新打包 ...
+    ) else (
+        echo   [*] 后端未打包，先执行 mvnw package ...
+    )
     call mvnw.cmd -DskipTests package
     if errorlevel 1 (
-        echo [ERROR] 后端打包失败，请确认已安装 JDK 17+
+        echo [ERROR] 后端打包失败。请确认已安装 JDK 17+，且没有后端实例占用 %JAR%
         pause
         exit /b 1
     )

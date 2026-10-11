@@ -57,7 +57,8 @@ public class AuthServiceImpl implements AuthService {
                 user.getUserId(), user.getUsername(), user.getRole(), user.getEmpId(), deptId);
         String token = jwtUtil.createToken(principal);
         opLogService.record("LOGIN", "AUTH", String.valueOf(user.getUserId()), "用户登录成功");
-        return new LoginVO(token, user.getUserId(), user.getUsername(), user.getRole(), user.getEmpId(), name);
+        return new LoginVO(token, user.getUserId(), user.getUsername(), user.getRole(),
+                user.getEmpId(), name, user.getAvatarUrl());
     }
 
     @Override

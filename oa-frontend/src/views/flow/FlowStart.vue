@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { flowEnabledDefs, flowDefDetail, flowSubmit, fileUpload } from '@/api'
@@ -19,6 +19,8 @@ const FIELD_TYPES = {
   TEXT: 'input',
   NUMBER: 'number',
   DATE: 'date',
+  DATETIME: 'datetime',
+  DURATION: 'duration',
   SELECT: 'select',
   MULTI_SELECT: 'multi',
   ATTACHMENT: 'attachment'
@@ -26,14 +28,65 @@ const FIELD_TYPES = {
 
 const fields = computed(() => (def.value ? def.value.fields || [] : []))
 
+/* DURATION 字段的自动计算展示文案 */
+const durationText = ref({})
+
 function parseOptions(field) {
   if (!field.options) return []
   try {
-    return JSON.parse(field.options)
+    const parsed = JSON.parse(field.options)
+    return Array.isArray(parsed) ? parsed : []
   } catch (_) {
     return []
   }
 }
+
+/* DURATION 字段 options 形如 {"from":"begin_date","to":"end_date"} */
+function durationMeta(field) {
+  if (!field.options) return null
+  try {
+    const o = JSON.parse(field.options)
+    if (o && typeof o === 'object' && o.from && o.to) return o
+  } catch (_) {
+    /* 非 JSON，忽略 */
+  }
+  return null
+}
+
+function toDate(value) {
+  if (!value) return null
+  const d = new Date(String(value).replace(' ', 'T'))
+  return Number.isNaN(d.getTime()) ? null : d
+}
+
+/* 计算（开始, 结束）之间的自然时长：天 = 小时 / 24，精确到 0.01 天 */
+function calcDuration(field) {
+  const meta = durationMeta(field)
+  if (!meta) return null
+  const from = toDate(form.value[meta.from])
+  const to = toDate(form.value[meta.to])
+  if (!from || !to || to <= from) return null
+  const hours = (to - from) / 3600000
+  return { hours: Math.round(hours * 100) / 100, days: Math.round((hours / 24) * 100) / 100 }
+}
+
+function recomputeDurations() {
+  const map = {}
+  fields.value.forEach((f) => {
+    if (f.fieldType !== 'DURATION') return
+    const d = calcDuration(f)
+    if (d) {
+      map[f.fieldKey] = `${d.days} 天（${d.hours} 小时）`
+      if (form.value[f.fieldKey] !== d.days) form.value[f.fieldKey] = d.days
+    } else {
+      map[f.fieldKey] = ''
+      if (form.value[f.fieldKey] != null) form.value[f.fieldKey] = null
+    }
+  })
+  durationText.value = map
+}
+
+watch(form, recomputeDurations, { deep: true })
 
 function buildRules() {
   const r = {}
@@ -54,9 +107,19 @@ async function loadForm(defId) {
     def.value = res.data
     form.value = {}
     buildRules()
+    recomputeDurations()
   } finally {
     loading.value = false
   }
+}
+
+/* 选择流程 → 导航到 /flow/start/:defId（独立路由，保证「返回」可正常回到列表） */
+function openForm(defId) {
+  router.push(`/flow/start/${defId}`)
+}
+
+function goBack() {
+  router.push('/flow/start')
 }
 
 async function onUpload(field) {
@@ -120,7 +183,7 @@ onMounted(async () => {
         <el-empty v-if="!defs.length" description="暂无可用的审批流程，请联系管理员配置" />
         <el-row :gutter="16">
           <el-col v-for="d in defs" :key="d.defId" :md="8" :sm="12" :xs="24">
-            <div class="def-card" role="button" tabindex="0" @click="loadForm(d.defId)" @keyup.enter="loadForm(d.defId)">
+            <div class="def-card" role="button" tabindex="0" @click="openForm(d.defId)" @keyup.enter="openForm(d.defId)">
               <div class="def-icon"><el-icon><Document /></el-icon></div>
               <div class="def-name">{{ d.defName }}</div>
               <div class="def-meta">{{ d.category }}</div>
@@ -141,6 +204,10 @@ onMounted(async () => {
             <el-input-number v-else-if="FIELD_TYPES[f.fieldType] === 'number'" v-model="form[f.fieldKey]" :min="0" :precision="f.fieldKey === 'hours' ? 1 : 0" />
             <!-- 日期 -->
             <el-date-picker v-else-if="FIELD_TYPES[f.fieldType] === 'date'" v-model="form[f.fieldKey]" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" style="width: 100%" />
+            <!-- 日期时间（精确到小时/分钟） -->
+            <el-date-picker v-else-if="FIELD_TYPES[f.fieldType] === 'datetime'" v-model="form[f.fieldKey]" type="datetime" value-format="YYYY-MM-DD HH:mm:ss" format="YYYY-MM-DD HH:mm" placeholder="选择日期时间" style="width: 100%" />
+            <!-- 时长（由开始/结束时间自动计算，只读） -->
+            <el-input v-else-if="FIELD_TYPES[f.fieldType] === 'duration'" :model-value="durationText[f.fieldKey]" readonly placeholder="由开始 / 结束时间自动计算" />
             <!-- 单选 -->
             <el-radio-group v-else-if="FIELD_TYPES[f.fieldType] === 'select'" v-model="form[f.fieldKey]">
               <el-radio v-for="opt in parseOptions(f)" :key="opt" :value="opt">{{ opt }}</el-radio>
@@ -157,7 +224,7 @@ onMounted(async () => {
           </el-form-item>
         </el-form>
         <div class="form-actions">
-          <el-button @click="router.push('/flow/start')">返回</el-button>
+          <el-button @click="goBack">返回</el-button>
           <el-button type="primary" :loading="submitting" @click="submit">提交审批</el-button>
         </div>
       </div>

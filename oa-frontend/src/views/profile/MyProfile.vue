@@ -3,6 +3,8 @@ import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { myProfile, updateProfile, avatarUpload } from '@/api'
 import { auth } from '@/stores/auth'
+import UserAvatar from '@/components/UserAvatar.vue'
+import { invalidateAvatar } from '@/api/avatar'
 
 const profile = ref({})
 const loading = ref(true)
@@ -29,6 +31,8 @@ async function onAvatarChange(event) {
     // 同步顶部菜单头像
     const user = auth.user || {}
     auth.setUser({ ...user, avatarUrl: res.data })
+    // 清除头像缓存，触发重新拉取（否则仍是旧图）
+    invalidateAvatar(profile.value.userId)
     ElMessage.success('头像已更新')
   } finally {
     avatarUploading.value = false
@@ -73,10 +77,7 @@ async function save() {
     <!-- 身份卡 -->
     <div class="id-card">
       <div class="avatar-box">
-        <el-avatar :size="56" class="avatar">
-          <img v-if="profile.avatarUrl" :src="`http://localhost:8080/api/file/avatar/${profile.userId}`" alt="avatar" />
-          <span v-else>{{ (profile.name || 'U').charAt(0) }}</span>
-        </el-avatar>
+        <UserAvatar :user-id="profile.userId" :name="profile.name" :has-avatar="!!profile.avatarUrl" :size="56" class="avatar" />
         <el-button size="small" class="avatar-btn" :loading="avatarUploading" @click="avatarInputRef?.click()">更换头像</el-button>
         <input ref="avatarInputRef" type="file" accept="image/*" style="display: none" @change="onAvatarChange" />
       </div>

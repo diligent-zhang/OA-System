@@ -1,6 +1,9 @@
 import { get, post, put, del } from './request'
 import service from './request'
 
+/* 即时通讯接口 */
+export * from './chat'
+
 /* ===== 认证 ===== */
 export const login = (data) => post('/auth/login', data)
 export const register = (data) => post('/auth/register', data)

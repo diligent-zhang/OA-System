@@ -15,6 +15,8 @@ const FIELD_TYPES = [
   { key: 'TEXT', label: '文本' },
   { key: 'NUMBER', label: '数字' },
   { key: 'DATE', label: '日期' },
+  { key: 'DATETIME', label: '日期时间' },
+  { key: 'DURATION', label: '时长(自动)' },
   { key: 'SELECT', label: '单选' },
   { key: 'MULTI_SELECT', label: '多选' },
   { key: 'ATTACHMENT', label: '附件' }
@@ -33,12 +35,20 @@ async function load() {
 }
 
 function defaultKey(type) {
-  const map = { TEXT: 'text', NUMBER: 'num', DATE: 'date', SELECT: 'select', MULTI_SELECT: 'multiSel', ATTACHMENT: 'attach' }
+  const map = { TEXT: 'text', NUMBER: 'num', DATE: 'date', DATETIME: 'datetime', DURATION: 'duration', SELECT: 'select', MULTI_SELECT: 'multiSel', ATTACHMENT: 'attach' }
   return `${map[type]}_${Date.now().toString(36)}`
 }
 
 function addField(type) {
-  fields.value.push({ fieldKey: defaultKey(type), label: FIELD_LABEL[type], fieldType: type, options: [], required: false })
+  fields.value.push({
+    fieldKey: defaultKey(type),
+    label: FIELD_LABEL[type],
+    fieldType: type,
+    options: [],
+    durFrom: '',
+    durTo: '',
+    required: false
+  })
 }
 
 function removeField(idx) {
@@ -67,6 +77,8 @@ function editForm(form) {
     label: f.label,
     fieldType: f.fieldType,
     options: parseOptions(f.options),
+    durFrom: parseDuration(f.options).from || '',
+    durTo: parseDuration(f.options).to || '',
     required: f.required === 1
   }))
   dialogVisible.value = true
@@ -80,6 +92,23 @@ function parseOptions(options) {
   } catch (_) {
     return []
   }
+}
+
+function parseDuration(options) {
+  if (!options) return {}
+  try {
+    const o = JSON.parse(options)
+    return o && typeof o === 'object' && !Array.isArray(o) ? o : {}
+  } catch (_) {
+    return {}
+  }
+}
+
+/* 可作为时长来源的字段：DATE / DATETIME，排除自身 */
+function sourceFields(current) {
+  return fields.value.filter(
+    (f) => ['DATE', 'DATETIME'].includes(f.fieldType) && f.fieldKey !== current.fieldKey
+  )
 }
 
 async function save() {
@@ -99,7 +128,11 @@ async function save() {
       label: f.label,
       fieldType: f.fieldType,
       required: !!f.required,
-      options: ['SELECT', 'MULTI_SELECT'].includes(f.fieldType) ? f.options || [] : undefined
+      options: ['SELECT', 'MULTI_SELECT'].includes(f.fieldType)
+        ? f.options || []
+        : f.fieldType === 'DURATION' && f.durFrom && f.durTo
+          ? { from: f.durFrom, to: f.durTo }
+          : undefined
     }))
   }
   if (editingId.value) {
@@ -197,6 +230,20 @@ onMounted(load)
           <span class="opts-label">{{ f.label }} 候选值：</span>
           <el-select v-model="f.options" multiple filterable allow-create default-first-option placeholder="输入后回车添加" style="max-width: 420px">
             <el-option v-for="o in f.options" :key="o" :value="o" />
+          </el-select>
+        </div>
+      </div>
+
+      <!-- 时长来源编辑：时长字段由两个日期时间字段相减自动计算 -->
+      <div v-if="fields.some((f) => f.fieldType === 'DURATION')" style="margin-top: 14px">
+        <div v-for="f in fields.filter((f) => f.fieldType === 'DURATION')" :key="f.fieldKey" class="opts-editor">
+          <span class="opts-label">{{ f.label }} 时长来源：</span>
+          <el-select v-model="f.durFrom" placeholder="开始字段" style="width: 180px">
+            <el-option v-for="o in sourceFields(f)" :key="o.fieldKey" :label="o.label" :value="o.fieldKey" />
+          </el-select>
+          <span class="opts-label">至</span>
+          <el-select v-model="f.durTo" placeholder="结束字段" style="width: 180px">
+            <el-option v-for="o in sourceFields(f)" :key="o.fieldKey" :label="o.label" :value="o.fieldKey" />
           </el-select>
         </div>
       </div>

@@ -16,4 +16,6 @@ public class LoginVO {
     private Long empId;
     /** 员工姓名（管理员无档案时为“系统管理员”） */
     private String name;
+    /** 头像相对路径（为空表示未设置头像） */
+    private String avatarUrl;
 }

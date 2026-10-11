@@ -40,7 +40,7 @@ async function load() {
 
 function fieldOptions() {
   const form = forms.value.find((x) => x.formId === defMeta.value.formId)
-  return (form?.fields || []).filter((x) => ['NUMBER', 'SELECT', 'MULTI_SELECT'].includes(x.fieldType))
+  return (form?.fields || []).filter((x) => ['NUMBER', 'DURATION', 'SELECT', 'MULTI_SELECT'].includes(x.fieldType))
 }
 
 function reset() {

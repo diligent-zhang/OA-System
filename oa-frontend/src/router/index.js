@@ -69,6 +69,18 @@ const routes = [
         component: () => import('@/views/contacts/Contacts.vue'),
         meta: { title: '企业通讯录', icon: 'PhoneFilled', breadcrumb: ['组织管理', '企业通讯录'] }
       },
+      {
+        path: 'chat',
+        name: 'Chat',
+        component: () => import('@/views/chat/Chat.vue'),
+        meta: { title: '即时通讯', icon: 'ChatDotRound', breadcrumb: ['办公服务', '即时通讯'] }
+      },
+      {
+        path: 'chat/:id',
+        name: 'ChatDetail',
+        component: () => import('@/views/chat/Chat.vue'),
+        meta: { title: '即时通讯', breadcrumb: ['办公服务', '即时通讯'] }
+      },
       /* ===== 审批 ===== */
       {
         path: 'flow/start',
